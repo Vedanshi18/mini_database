@@ -16,6 +16,61 @@ void removeNewline(char str[]) {
     str[strcspn(str, "\n")] = '\0';
 }
 
+
+// ---------- CLEAR INPUT BUFFER ----------
+void clearInputBuffer() {
+    while (getchar() != '\n');
+}
+
+
+// ---------- READ INTEGER ----------
+int readInteger(const char *message) {
+
+    int value;
+
+    while (1) {
+
+        printf("%s", message);
+
+        if (scanf("%d", &value) == 1) {
+            clearInputBuffer();
+            return value;
+        }
+
+        printf("Invalid input! Please enter a whole number.\n");
+        clearInputBuffer();
+    }
+}
+
+
+// ---------- READ CGPA ----------
+float readCGPA(const char *message) {
+
+    float cgpa;
+
+    while (1) {
+
+        printf("%s", message);
+
+        if (scanf("%f", &cgpa) != 1) {
+
+            printf("Invalid input! Please enter a number.\n");
+            clearInputBuffer();
+        }
+        else if (cgpa < 0 || cgpa > 10) {
+
+            printf("Invalid CGPA! CGPA must be between 0 and 10.\n");
+            clearInputBuffer();
+        }
+        else {
+
+            clearInputBuffer();
+            return cgpa;
+        }
+    }
+}
+
+
 // ---------- INSERT ----------
 void insertStudent(struct Student students[], int *count, int *nextId) {
 
@@ -28,47 +83,31 @@ void insertStudent(struct Student students[], int *count, int *nextId) {
 
     printf("\nStudent ID: %d\n", students[*count].id);
 
-    // Clear newline left by previous scanf
-    while (getchar() != '\n');
-
     printf("Enter student name: ");
-    fgets(students[*count].name,
-          sizeof(students[*count].name),
-          stdin);
+
+    fgets(
+        students[*count].name,
+        sizeof(students[*count].name),
+        stdin
+    );
 
     removeNewline(students[*count].name);
 
 
     printf("Enter branch: ");
-    fgets(students[*count].branch,
-          sizeof(students[*count].branch),
-          stdin);
+
+    fgets(
+        students[*count].branch,
+        sizeof(students[*count].branch),
+        stdin
+    );
 
     removeNewline(students[*count].branch);
 
 
-    // CGPA validation
-    while (1) {
+    students[*count].cgpa =
+        readCGPA("Enter CGPA (0 - 10): ");
 
-        printf("Enter CGPA (0 - 10): ");
-
-        if (scanf("%f", &students[*count].cgpa) != 1) {
-
-            printf("Invalid input! Please enter a number.\n");
-
-            while (getchar() != '\n');
-        }
-        else if (students[*count].cgpa < 0 ||
-                 students[*count].cgpa > 10) {
-
-            printf("Invalid CGPA! CGPA must be between 0 and 10.\n");
-
-            while (getchar() != '\n');
-        }
-        else {
-            break;
-        }
-    }
 
     (*count)++;
     (*nextId)++;
@@ -107,10 +146,7 @@ void searchStudent(struct Student students[], int count) {
         return;
     }
 
-    int id;
-
-    printf("\nEnter student ID to search: ");
-    scanf("%d", &id);
+    int id = readInteger("\nEnter student ID to search: ");
 
     for (int i = 0; i < count; i++) {
 
@@ -139,12 +175,11 @@ void deleteStudent(struct Student students[], int *count) {
         return;
     }
 
-    int id;
+    int id = readInteger("\nEnter student ID to delete: ");
+
     int found = -1;
 
-    printf("\nEnter student ID to delete: ");
-    scanf("%d", &id);
-
+    // Find student
     for (int i = 0; i < *count; i++) {
 
         if (students[i].id == id) {
@@ -158,6 +193,7 @@ void deleteStudent(struct Student students[], int *count) {
         return;
     }
 
+    // Shift remaining students left
     for (int i = found; i < *count - 1; i++) {
         students[i] = students[i + 1];
     }
@@ -168,6 +204,65 @@ void deleteStudent(struct Student students[], int *count) {
 }
 
 
+// ---------- UPDATE ----------
+void updateStudent(struct Student students[], int count) {
+
+    if (count == 0) {
+        printf("\nDatabase is empty.\n");
+        return;
+    }
+
+    int id = readInteger("\nEnter student ID to update: ");
+
+    int found = -1;
+
+    // Find student
+    for (int i = 0; i < count; i++) {
+
+        if (students[i].id == id) {
+            found = i;
+            break;
+        }
+    }
+
+    if (found == -1) {
+        printf("\nStudent with ID %d not found.\n", id);
+        return;
+    }
+
+    printf("\nUpdating Student ID: %d\n", students[found].id);
+
+
+    printf("Enter new name: ");
+
+    fgets(
+        students[found].name,
+        sizeof(students[found].name),
+        stdin
+    );
+
+    removeNewline(students[found].name);
+
+
+    printf("Enter new branch: ");
+
+    fgets(
+        students[found].branch,
+        sizeof(students[found].branch),
+        stdin
+    );
+
+    removeNewline(students[found].branch);
+
+
+    students[found].cgpa =
+        readCGPA("Enter new CGPA (0 - 10): ");
+
+
+    printf("\nStudent updated successfully!\n");
+}
+
+
 // ---------- MAIN ----------
 int main() {
 
@@ -175,7 +270,6 @@ int main() {
 
     int count = 0;
     int nextId = 1;
-    int choice;
 
     while (1) {
 
@@ -184,11 +278,11 @@ int main() {
         printf("2. Display Students\n");
         printf("3. Search Student\n");
         printf("4. Delete Student\n");
-        printf("5. Exit\n");
+        printf("5. Update Student\n");
+        printf("6. Exit\n");
         printf("============================\n");
 
-        printf("Enter choice: ");
-        scanf("%d", &choice);
+        int choice = readInteger("Enter choice: ");
 
         switch (choice) {
 
@@ -209,11 +303,15 @@ int main() {
                 break;
 
             case 5:
+                updateStudent(students, count);
+                break;
+
+            case 6:
                 printf("\nExiting MiniDB...\n");
                 return 0;
 
             default:
-                printf("\nInvalid choice! Please select 1-5.\n");
+                printf("\nInvalid choice! Please select 1-6.\n");
         }
     }
 
