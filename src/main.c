@@ -3,24 +3,26 @@
 
 #define MAX_STUDENTS 100
 
-struct Student
-{
+struct Student {
     int id;
     char name[50];
     char branch[20];
     float cgpa;
 };
 
-void insertStudent(struct Student students[], int *count)
-{
-    if (*count >= MAX_STUDENTS)
-    {
-        printf("Database is full!\n");
+
+// ---------- INSERT ----------
+void insertStudent(struct Student students[], int *count, int *nextId) {
+
+    if (*count >= MAX_STUDENTS) {
+        printf("\nDatabase is full!\n");
         return;
     }
 
-    printf("\nEnter student ID: ");
-    scanf("%d", &students[*count].id);
+    // Automatically assign ID
+    students[*count].id = *nextId;
+
+    printf("\nStudent ID: %d\n", students[*count].id);
 
     printf("Enter student name: ");
     scanf("%49s", students[*count].name);
@@ -28,92 +30,144 @@ void insertStudent(struct Student students[], int *count)
     printf("Enter branch: ");
     scanf("%19s", students[*count].branch);
 
-    printf("Enter CGPA: ");
-    scanf("%f", &students[*count].cgpa);
+    // CGPA validation
+    while (1) {
+
+        printf("Enter CGPA (0 - 10): ");
+
+        if (scanf("%f", &students[*count].cgpa) != 1) {
+
+            printf("Invalid input! Please enter a number.\n");
+
+            // Clear invalid input
+            while (getchar() != '\n');
+        }
+        else if (students[*count].cgpa < 0 ||
+                 students[*count].cgpa > 10) {
+
+            printf("Invalid CGPA! CGPA must be between 0 and 10.\n");
+
+            // Clear remaining input
+            while (getchar() != '\n');
+        }
+        else {
+            // Valid CGPA
+            break;
+        }
+    }
 
     (*count)++;
+    (*nextId)++;
 
-    printf("Student inserted successfully!\n");
+    printf("\nStudent inserted successfully!\n");
 }
 
-void displayStudents(struct Student students[], int count)
-{
-    if (count == 0)
-    {
+
+// ---------- DISPLAY ----------
+void displayStudents(struct Student students[], int count) {
+
+    if (count == 0) {
         printf("\nDatabase is empty.\n");
         return;
     }
 
     printf("\n========== DATABASE ==========\n");
-    for (int i = 0; i < count; i++)
-    {
+
+    for (int i = 0; i < count; i++) {
+
         printf("\nID: %d\n", students[i].id);
         printf("Name: %s\n", students[i].name);
         printf("Branch: %s\n", students[i].branch);
         printf("CGPA: %.2f\n", students[i].cgpa);
     }
+
+    printf("\n==============================\n");
 }
 
-void searchStudent(struct Student students[], int count)
-{
-    if (count == 0)
-    {
+
+// ---------- SEARCH ----------
+void searchStudent(struct Student students[], int count) {
+
+    if (count == 0) {
         printf("\nDatabase is empty.\n");
         return;
     }
+
     int id;
+
     printf("\nEnter student ID to search: ");
     scanf("%d", &id);
 
-    for (int i = 0; i < count; i++)
-    {
-        if (students[i].id == id)
-        {
+    for (int i = 0; i < count; i++) {
+
+        if (students[i].id == id) {
+
             printf("\nStudent found!\n");
+
             printf("ID: %d\n", students[i].id);
             printf("Name: %s\n", students[i].name);
             printf("Branch: %s\n", students[i].branch);
             printf("CGPA: %.2f\n", students[i].cgpa);
+
             return;
         }
     }
+
     printf("\nStudent with ID %d not found.\n", id);
 }
 
-void deleteStudent(struct Student students[], int *count)
-{
-    if (*count == 0)
-    {
+
+// ---------- DELETE ----------
+void deleteStudent(struct Student students[], int *count) {
+
+    if (*count == 0) {
         printf("\nDatabase is empty.\n");
         return;
     }
+
     int id;
+    int found = -1;
+
     printf("\nEnter student ID to delete: ");
     scanf("%d", &id);
 
-    for (int i = 0; i < *count; i++)
-    {
-        if (students[i].id == id)
-        {
-            for (int j = i; j < *count - 1; j++)
-            {
-                students[j] = students[j + 1];
-            }
-            (*count)--;
-            printf("\nStudent with ID %d deleted successfully.\n", id);
-            return;
+    // Find student
+    for (int i = 0; i < *count; i++) {
+
+        if (students[i].id == id) {
+            found = i;
+            break;
         }
     }
-    printf("\nStudent with ID %d not found.\n", id);
+
+    // Student not found
+    if (found == -1) {
+        printf("\nStudent with ID %d not found.\n", id);
+        return;
+    }
+
+    // Shift elements to remove the student
+    for (int i = found; i < *count - 1; i++) {
+        students[i] = students[i + 1];
+    }
+
+    (*count)--;
+
+    printf("\nStudent deleted successfully.\n");
 }
-int main()
-{
+
+
+// ---------- MAIN ----------
+int main() {
+
     struct Student students[MAX_STUDENTS];
+
     int count = 0;
+    int nextId = 1;
     int choice;
 
-    while (1)
-    {
+    while (1) {
+
         printf("\n========== MiniDB ==========\n");
         printf("1. Insert Student\n");
         printf("2. Display Students\n");
@@ -125,31 +179,32 @@ int main()
         printf("Enter choice: ");
         scanf("%d", &choice);
 
-        switch (choice)
-        {
-        case 1:
-            insertStudent(students, &count);
-            break;
+        switch (choice) {
 
-        case 2:
-            displayStudents(students, count);
-            break;
+            case 1:
+                insertStudent(students, &count, &nextId);
+                break;
 
-        case 3:
-            searchStudent(students, count);
-            break;
+            case 2:
+                displayStudents(students, count);
+                break;
 
-        case 4:
-            deleteStudent(students, &count);
-            break;
+            case 3:
+                searchStudent(students, count);
+                break;
 
-        case 5:
-            printf("Exiting MiniDB...\n");
-            return 0;
+            case 4:
+                deleteStudent(students, &count);
+                break;
 
-        default:
-            printf("Invalid choice!\n");
+            case 5:
+                printf("\nExiting MiniDB...\n");
+                return 0;
+
+            default:
+                printf("\nInvalid choice! Please select 1-5.\n");
         }
     }
+
     return 0;
 }
