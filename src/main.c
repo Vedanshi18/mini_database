@@ -11,6 +11,11 @@ struct Student {
 };
 
 
+// ---------- REMOVE NEWLINE ----------
+void removeNewline(char str[]) {
+    str[strcspn(str, "\n")] = '\0';
+}
+
 // ---------- INSERT ----------
 void insertStudent(struct Student students[], int *count, int *nextId) {
 
@@ -19,16 +24,28 @@ void insertStudent(struct Student students[], int *count, int *nextId) {
         return;
     }
 
-    // Automatically assign ID
     students[*count].id = *nextId;
 
     printf("\nStudent ID: %d\n", students[*count].id);
 
+    // Clear newline left by previous scanf
+    while (getchar() != '\n');
+
     printf("Enter student name: ");
-    scanf("%49s", students[*count].name);
+    fgets(students[*count].name,
+          sizeof(students[*count].name),
+          stdin);
+
+    removeNewline(students[*count].name);
+
 
     printf("Enter branch: ");
-    scanf("%19s", students[*count].branch);
+    fgets(students[*count].branch,
+          sizeof(students[*count].branch),
+          stdin);
+
+    removeNewline(students[*count].branch);
+
 
     // CGPA validation
     while (1) {
@@ -39,7 +56,6 @@ void insertStudent(struct Student students[], int *count, int *nextId) {
 
             printf("Invalid input! Please enter a number.\n");
 
-            // Clear invalid input
             while (getchar() != '\n');
         }
         else if (students[*count].cgpa < 0 ||
@@ -47,11 +63,9 @@ void insertStudent(struct Student students[], int *count, int *nextId) {
 
             printf("Invalid CGPA! CGPA must be between 0 and 10.\n");
 
-            // Clear remaining input
             while (getchar() != '\n');
         }
         else {
-            // Valid CGPA
             break;
         }
     }
@@ -131,7 +145,6 @@ void deleteStudent(struct Student students[], int *count) {
     printf("\nEnter student ID to delete: ");
     scanf("%d", &id);
 
-    // Find student
     for (int i = 0; i < *count; i++) {
 
         if (students[i].id == id) {
@@ -140,13 +153,11 @@ void deleteStudent(struct Student students[], int *count) {
         }
     }
 
-    // Student not found
     if (found == -1) {
         printf("\nStudent with ID %d not found.\n", id);
         return;
     }
 
-    // Shift elements to remove the student
     for (int i = found; i < *count - 1; i++) {
         students[i] = students[i + 1];
     }
