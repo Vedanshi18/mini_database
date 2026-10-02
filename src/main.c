@@ -2,6 +2,7 @@
 #include <string.h>
 
 #define MAX_STUDENTS 100
+#define DATABASE_FILE "data/database.dat"
 
 struct Student {
     int id;
@@ -16,12 +17,10 @@ void removeNewline(char str[]) {
     str[strcspn(str, "\n")] = '\0';
 }
 
-
 // ---------- CLEAR INPUT BUFFER ----------
 void clearInputBuffer() {
     while (getchar() != '\n');
 }
-
 
 // ---------- READ INTEGER ----------
 int readInteger(const char *message) {
@@ -70,6 +69,29 @@ float readCGPA(const char *message) {
     }
 }
 
+// ---------- SAVE DATABASE ----------
+void saveDatabase(struct Student students[], int count) {
+
+    FILE *file = fopen(DATABASE_FILE, "wb");
+
+    if (file == NULL) {
+        printf("\nError: Could not open database file for writing.\n");
+        return;
+    }
+
+    fwrite(&count, sizeof(int), 1, file);
+
+    fwrite(
+        students,
+        sizeof(struct Student),
+        count,
+        file
+    );
+
+    fclose(file);
+
+    printf("\nDatabase saved successfully.\n");
+}
 
 // ---------- INSERT ----------
 void insertStudent(struct Student students[], int *count, int *nextId) {
