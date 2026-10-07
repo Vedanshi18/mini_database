@@ -29,12 +29,15 @@ void clearInputBuffer() {
 // ---------- READ INTEGER ----------
 int readInteger(const char *message) {
     int value;
+
     while (1) {
         printf("%s", message);
+
         if (scanf("%d", &value) == 1) {
             clearInputBuffer();
             return value;
         }
+
         printf("Invalid input! Please enter a whole number.\n");
         clearInputBuffer();
     }
@@ -43,15 +46,19 @@ int readInteger(const char *message) {
 // ---------- READ CGPA ----------
 float readCGPA(const char *message) {
     float cgpa;
+
     while (1) {
         printf("%s", message);
+
         if (scanf("%f", &cgpa) != 1) {
             printf("Invalid input! Please enter a number.\n");
             clearInputBuffer();
-        } else if (cgpa < 0 || cgpa > 10) {
+        }
+        else if (cgpa < 0 || cgpa > 10) {
             printf("Invalid CGPA! CGPA must be between 0 and 10.\n");
             clearInputBuffer();
-        } else {
+        }
+        else {
             clearInputBuffer();
             return cgpa;
         }
@@ -68,6 +75,7 @@ void saveDatabase(struct Student students[], int count, int nextId) {
     }
 
     struct DatabaseHeader header;
+
     header.count = count;
     header.nextId = nextId;
 
@@ -111,6 +119,7 @@ int loadDatabase(struct Student students[], int *count, int *nextId) {
     *nextId = header.nextId;
 
     fclose(file);
+
     return 1;
 }
 
@@ -311,6 +320,58 @@ void updateStudent(struct Student students[], int count) {
     printf("\nStudent updated successfully!\n");
 }
 
+// ---------- SORT ----------
+void sortStudents(struct Student students[], int count) {
+    if (count == 0) {
+        printf("\nDatabase is empty.\n");
+        return;
+    }
+
+    printf("\n========== SORT ==========\n");
+    printf("1. Sort by ID\n");
+    printf("2. Sort by Name\n");
+    printf("3. Sort by CGPA\n");
+    printf("==========================\n");
+
+    int choice = readInteger("Enter sort choice: ");
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            int shouldSwap = 0;
+
+            if (choice == 1) {
+                if (students[j].id > students[j + 1].id) {
+                    shouldSwap = 1;
+                }
+            }
+            else if (choice == 2) {
+                if (strcmp(students[j].name, students[j + 1].name) > 0) {
+                    shouldSwap = 1;
+                }
+            }
+            else if (choice == 3) {
+                if (students[j].cgpa < students[j + 1].cgpa) {
+                    shouldSwap = 1;
+                }
+            }
+
+            if (shouldSwap) {
+                struct Student temp = students[j];
+                students[j] = students[j + 1];
+                students[j + 1] = temp;
+            }
+        }
+    }
+
+    if (choice >= 1 && choice <= 3) {
+        printf("\nStudents sorted successfully!\n");
+        displayStudents(students, count);
+    }
+    else {
+        printf("\nInvalid sort choice!\n");
+    }
+}
+
 // ---------- MAIN ----------
 int main() {
     struct Student students[MAX_STUDENTS];
@@ -333,7 +394,8 @@ int main() {
         printf("3. Search Student\n");
         printf("4. Delete Student\n");
         printf("5. Update Student\n");
-        printf("6. Exit\n");
+        printf("6. Sort Students\n");
+        printf("7. Exit\n");
         printf("============================\n");
 
         int choice = readInteger("Enter choice: ");
@@ -360,12 +422,16 @@ int main() {
                 break;
 
             case 6:
+                sortStudents(students, count);
+                break;
+
+            case 7:
                 saveDatabase(students, count, nextId);
                 printf("\nExiting MiniDB...\n");
                 return 0;
 
             default:
-                printf("\nInvalid choice! Please select 1-6.\n");
+                printf("\nInvalid choice! Please select 1-7.\n");
         }
     }
 
