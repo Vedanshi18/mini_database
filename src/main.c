@@ -372,6 +372,65 @@ void sortStudents(struct Student students[], int count) {
     }
 }
 
+// ---------- STATISTICS ----------
+void studentStatistics(struct Student students[], int count) {
+    if (count == 0) {
+        printf("\nDatabase is empty.\n");
+        return;
+    }
+
+    float totalCGPA = 0;
+    float highestCGPA = students[0].cgpa;
+    float lowestCGPA = students[0].cgpa;
+
+    for (int i = 0; i < count; i++) {
+        totalCGPA += students[i].cgpa;
+
+        if (students[i].cgpa > highestCGPA) {
+            highestCGPA = students[i].cgpa;
+        }
+
+        if (students[i].cgpa < lowestCGPA) {
+            lowestCGPA = students[i].cgpa;
+        }
+    }
+
+    float averageCGPA = totalCGPA / count;
+
+    printf("\n========== STATISTICS ==========\n");
+    printf("Total Students: %d\n", count);
+    printf("Average CGPA: %.2f\n", averageCGPA);
+    printf("Highest CGPA: %.2f\n", highestCGPA);
+    printf("Lowest CGPA: %.2f\n", lowestCGPA);
+
+    printf("\nStudents by Branch:\n");
+
+    for (int i = 0; i < count; i++) {
+        int alreadyCounted = 0;
+
+        for (int j = 0; j < i; j++) {
+            if (strcmp(students[i].branch, students[j].branch) == 0) {
+                alreadyCounted = 1;
+                break;
+            }
+        }
+
+        if (!alreadyCounted) {
+            int branchCount = 0;
+
+            for (int j = 0; j < count; j++) {
+                if (strcmp(students[i].branch, students[j].branch) == 0) {
+                    branchCount++;
+                }
+            }
+
+            printf("%s: %d\n", students[i].branch, branchCount);
+        }
+    }
+
+    printf("================================\n");
+}
+
 // ---------- MAIN ----------
 int main() {
     struct Student students[MAX_STUDENTS];
@@ -395,7 +454,8 @@ int main() {
         printf("4. Delete Student\n");
         printf("5. Update Student\n");
         printf("6. Sort Students\n");
-        printf("7. Exit\n");
+        printf("7. Student Statistics\n");
+        printf("8. Exit\n");
         printf("============================\n");
 
         int choice = readInteger("Enter choice: ");
@@ -426,12 +486,16 @@ int main() {
                 break;
 
             case 7:
+                studentStatistics(students, count);
+                break;
+
+            case 8:
                 saveDatabase(students, count, nextId);
                 printf("\nExiting MiniDB...\n");
                 return 0;
 
             default:
-                printf("\nInvalid choice! Please select 1-7.\n");
+                printf("\nInvalid choice! Please select 1-8.\n");
         }
     }
 
