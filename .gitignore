@@ -1,4 +1,14 @@
 # Compiled files
-*.o
 *.exe
+*.o
+*.obj
 *.out
+
+# IDE and OS files
+.vscode/
+.vs/
+.DS_Store
+Thumbs.db
+
+# Local database
+data/database.dat
