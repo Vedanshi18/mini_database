@@ -1,14 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -std=c99 -Wall -Wextra -Iinclude
 TARGET = mini_db.exe
-SOURCE = src/main.c
+SOURCES = src/main.c src/student.c src/database.c src/query.c
+
+.PHONY: all clean
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE)
-	$(CC) $(CFLAGS) $(SOURCE) -o $(TARGET)
+$(TARGET): $(SOURCES)
+	$(CC) $(CFLAGS) $(SOURCES) -o $(TARGET)
 
 clean:
-	del /Q $(TARGET) 2>NUL
-
-	
+	-del /Q $(TARGET) 2>NUL

@@ -1,159 +1,135 @@
-# MiniDB — Student Database Management System
+# MiniDB — Lightweight Relational Database Engine
 
-## 1. Project Description
+MiniDB is a small student database written in C. It combines in-memory CRUD
+operations with binary-file persistence and an interactive SQL-like command
+prompt. It is intended as an educational project; it is not a replacement for
+a production database server.
 
-MiniDB is a menu-driven Student Database Management System developed in C. It allows users to manage student records through operations such as insertion, searching, updating, deletion, and sorting.
+MiniDB is a single-table database: `Student` is the built-in table, and its
+schema is defined by the C `Student` structure. The SQL prompt implements a
+useful subset of queries over that table, but it does not yet support dynamic
+table definitions or arbitrary SQL schemas.
 
-The project demonstrates core C programming concepts, including structures, arrays, functions, input validation, searching, sorting, and file handling. Student records are stored in a binary file so that saved data can be loaded when the application is restarted.
+## Features
 
-## 2. Project Goals
+- Insert, display, search, update, and delete student records.
+- Sort by ID, name, or CGPA; calculate CGPA and branch statistics.
+- Store up to 100 records in `data/database.dat`.
+- Validate student data, duplicate IDs, database metadata, and loaded records.
+- Start directly in a `minidb>` SQL-like prompt and execute `SELECT`, `INSERT`,
+  `UPDATE`, and `DELETE` statements.
+- Open the original student-management menu from the prompt with `.menu`.
+- Save SQL mutations immediately; menu-based changes are saved with **Save**
+  or **Save and Exit**.
+- Replace the binary database through a temporary file so an unsuccessful save
+  does not truncate the previous database.
 
-- Strengthen understanding of core C programming.
-- Represent structured student information using structures.
-- Implement common database operations.
-- Apply searching and sorting algorithms.
-- Learn file handling and persistent data storage.
-- Organize a C project using a clean directory structure.
-- Practise writing maintainable and modular code.
+Each student has a positive integer ID, a non-empty name and branch, and a
+finite CGPA from 0 through 10. Names can contain up to 49 characters and
+branches up to 19 characters.
 
-## 3. Features and Specifications
+## How the code fits together
 
-Each student record contains:
-- **ID:** Automatically assigned student identifier.
-- **Name:** Student's name.
-- **Branch:** Student's academic branch.
-- **CGPA:** Student's cumulative grade point average, between 0 and 10.
+- `student.h` defines one student record. All menu and SQL commands work with
+  the same `struct Student`, so they see the same data while MiniDB is running.
+- `student.c` handles the menu operations and checks values entered by a
+  person.
+- `query.c` reads a SQL-like statement one piece at a time, checks its syntax,
+  and runs it against the student records in memory.
+- `database.c` checks records when loading or saving them. It writes to a
+  temporary file first so an incomplete save does not replace the previous
+  database.
+- `main.c` loads records at startup, shows the `minidb>` prompt, and routes
+  commands to the query engine. Type `.menu` to use the original menu.
 
-### Available Operations
+For example, `INSERT` is parsed and validated in `query.c`, added to the same
+student array the menu uses, and saved through `database.c`. A later `SELECT`
+reads from that array. The database file is loaded again the next time the
+program starts.
 
-1. **Insert Student:** Add a student record with an automatically assigned ID.
-2. **Display Students:** View all stored student records.
-3. **Search Student:** Search by ID, name, or branch.
-4. **Delete Student:** Remove a student record using its ID.
-5. **Update Student:** Modify a student's name, branch, or CGPA.
-6. **Sort Students:** Sort records by ID, name, or CGPA.
-7. **Student Statistics:** View the total number of students, average CGPA, highest CGPA, lowest CGPA, and student counts by branch.
-8. **Save Database:** Save records without exiting the application.
-9. **Exit:** Save the database and close the application.
-
-## 4. Project Design
-
-The application uses a menu-driven approach. Each major operation is implemented through a separate C function.
-
-### Data Representation
-
-A `Student` structure stores the ID, name, branch, and CGPA of each student. An array stores the student records in memory, with a maximum capacity of 100 students.
-
-### File Storage
-
-The application stores student records and database metadata in `data/database.dat` using binary file operations.
-
-- At startup, the application attempts to load previously saved records.
-- The Save Database option writes the current records to the file.
-- The Exit option saves the records before terminating.
-
-The database file is generated at runtime and is excluded from version control.
-
-### Searching and Sorting
-
-The application supports searching by student ID, name, and branch. Sorting is implemented using Bubble Sort, with options for ascending ID, alphabetical name, and descending CGPA.
-
-## 5. Technologies and Concepts
-
-- **Programming language:** C
-- **Compiler:** GCC
-- **Data structures:** Structures and arrays
-- **Algorithms:** Linear search and Bubble Sort
-- **File handling:** Binary file input/output
-- **Other concepts:** Functions, loops, conditional statements, input validation, and string handling
-- **Version control:** Git and GitHub
-
-## 6. Project Structure
+## Project layout
 
 ```text
 mini_database/
 ├── data/
-│   └── .gitkeep
-├── src/
-│   └── main.c
+│   └── database.dat       # Created/updated at runtime; ignored by Git
 ├── include/
-├── .gitignore
-├── LICENSE
+│   ├── student.h          # Student model and student-operation declarations
+│   ├── database.h         # Binary persistence interface
+│   └── query.h            # SQL-like query interface
+├── src/
+│   ├── main.c             # Menu and application entry point
+│   ├── student.c          # Input validation and student operations
+│   ├── database.c         # Validated binary load and safe save
+│   └── query.c            # SQL-like parser, selection, and mutations
 ├── Makefile
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
-The `include/` directory is reserved for header files if the project is modularized further.
+The database file retains the project's existing binary layout: a header
+containing the record count and next ID, followed by the student structures.
+Keeping this layout allows existing `database.dat` files to be loaded. As with
+any raw-structure binary format, the file is intended for use with a compatible
+compiler and structure layout.
 
-The `data/database.dat` file is created locally when the application saves records. It is not committed to GitHub.
+## Supported query syntax
 
-## 7. Prerequisites
+After launching the program, enter SQL statements at the `minidb>` prompt.
+Keywords and the table name `Student` are case-insensitive. A final semicolon
+is optional. `Student` is the built-in table; `CREATE TABLE` is not currently
+supported because the storage engine uses the fixed student-record schema.
 
-- GCC C compiler
-- Windows PowerShell or another compatible terminal
-- Git (optional, for version control)
+```sql
+SELECT * FROM Student;
+SELECT name, cgpa FROM Student;
+SELECT * FROM Student WHERE id = 2;
+SELECT id, name FROM Student WHERE cgpa >= 9;
+SELECT * FROM Student WHERE id != 2;
+SELECT name FROM Student WHERE branch = 'CSE';
 
-## 8. Compilation and Execution
-
-Open a terminal in the project root directory.
-
-### Option A: Compile directly with GCC
-
-```bash
-gcc -Wall -Wextra src/main.c -o mini_db.exe
+INSERT INTO Student VALUES (101, 'Riya', 'CSE', 9.1);
+UPDATE Student SET cgpa = 9.5 WHERE id = 101;
+DELETE FROM Student WHERE id = 101;
 ```
 
-Run the program in Windows PowerShell:
+Use `.help` to display examples, `.menu` to open the existing CRUD menu, and
+`.exit` (or `quit`) to save and close MiniDB.
+
+`SELECT` supports `*` or a comma-separated list from `id`, `name`, `branch`,
+and `cgpa`. A single `WHERE` comparison is supported using `=`, `==`, `!=`,
+`<>`, `<`, `<=`, `>`, or `>=` for numeric columns. Text columns support
+equality and inequality comparisons. `UPDATE` currently updates `cgpa` for one
+ID; `DELETE` requires one ID condition. INSERT text values use single quotes;
+double single quotes represent a quote inside a value.
+
+Malformed statements, unsupported columns or tables, out-of-range values, and
+duplicate IDs are rejected with an error message. Query input is limited to 511
+characters.
+
+## Build and run (Windows / MinGW)
+
+Install GCC/MinGW and GNU Make, then open a terminal in the project directory:
 
 ```powershell
-.\mini_db.exe
-```
-
-### Option B: Build using Make
-
-If a compatible Make utility is installed, run:
-
-```bash
-make
-```
-
-On MinGW installations, the command may instead be:
-
-```powershell
+mingw32-make clean
 mingw32-make
-```
-
-Then run:
-
-```powershell
 .\mini_db.exe
 ```
 
-## 9. Example Usage
+The build uses `-std=c99 -Wall -Wextra`. To use GCC directly:
 
-1. Start the application.
-2. Select **Insert Student** and enter the student's details.
-3. Select **Display Students** to view the records.
-4. Use **Search Student** to find a particular student.
-5. Update, delete, or sort records as needed.
-6. Select **Save Database** to save without exiting.
-7. Restart the application to verify that saved records are loaded.
+```powershell
+gcc -std=c99 -Wall -Wextra -Iinclude src/main.c src/student.c src/database.c src/query.c -o mini_db.exe
+```
 
-## 10. Limitations
+At startup MiniDB loads `data/database.dat` and displays the `minidb>` prompt.
+A missing file starts a new empty database. If an existing file is corrupt or
+fails validation, MiniDB reports the error and stops rather than silently
+replacing that file.
 
-- The application supports a maximum of 100 student records.
-- Name and branch searches use exact matching.
-- Records are stored in a binary file and are intended to be accessed through the application.
-- The program uses a local file rather than a database server.
+## Ignore rules
 
-## 11. Future Improvements
-
-- Separate declarations into header files and implementation into multiple source files.
-- Add more robust recovery from corrupted or incomplete database files.
-- Add automated tests for database operations.
-- Improve search functionality with partial matching.
-- Support larger datasets and more advanced indexing techniques.
-
-## 12. License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+`.gitignore` excludes compiled executables and object files, including
+`mini_db.exe`, and excludes the local `data/database.dat` file. The database is
+created locally and should not be committed.
